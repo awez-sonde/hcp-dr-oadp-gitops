@@ -14,10 +14,11 @@ spec:
     server: https://kubernetes.default.svc
     namespace: openshift-adp
   ignoreDifferences:
-    # Present if anyone ran `oc apply` on the DPA outside Argo; avoids permanent OutOfSync.
+    # Argo CD injects tracking-id on live objects; Git will never contain it — ignore or the app stays OutOfSync.
     - group: oadp.openshift.io
       kind: DataProtectionApplication
       jsonPointers:
+        - /metadata/annotations/argocd.argoproj.io~1tracking-id
         - /metadata/annotations/kubectl.kubernetes.io~1last-applied-configuration
   syncPolicy:
     automated:

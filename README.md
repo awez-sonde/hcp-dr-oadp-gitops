@@ -105,7 +105,9 @@ oc delete application.argoproj.io hcp-dr-oadp-minio -n openshift-gitops --ignore
 oc apply -f gitops/applications/acm/
 ```
 
-If `hcp-dr-oadp-dpa` stays **OutOfSync** while the cluster is healthy, it is usually **spec drift**: the OADP controller adds defaults (for example `spec.logFormat`, `spec.configuration.velero.disableFsBackup`) or a **`kubectl.kubernetes.io/last-applied-configuration`** annotation from a manual `oc apply`. This repo keeps the defaults in `manifests/oadp/config/dpa-minio.yaml` and uses **`ignoreDifferences`** on the `Application` for that annotation. After you push, refresh or sync the app once.
+If `hcp-dr-oadp-dpa` stays **OutOfSync** with a diff only on **`metadata.annotations.argocd.argoproj.io/tracking-id`**, add that path under `ignoreDifferences` on the Application (this repo does). That annotation is added by Argo on the live object and is not stored in Git.
+
+If the diff includes **spec** (for example plugins or `nodeAgent`), Git and the cluster still differ: push your branch, **Sync** (or enable **`Replace=true`** on the Application, as in `03-argocd-oadp-dpa.application.yaml`), and confirm `oc get dpa -n openshift-adp -o yaml` matches Git.
 
 For a manual check: `kubectl diff -f <(kubectl kustomize manifests/oadp/config) -n openshift-adp` should print nothing when Git matches the live DPA.
 
