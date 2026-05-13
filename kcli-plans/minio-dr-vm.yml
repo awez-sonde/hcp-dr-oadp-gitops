@@ -1,0 +1,23 @@
+# MinIO DR object store — VM on libvirt default network, 200 GiB data disk.
+#
+# Deploy (hypervisor):
+#   kcli create plan -f kcli-plans/minio-dr-vm.yml -P network=default -P disk_gb=200
+#
+# Then install MinIO on the guest (after first boot). From hypervisor, pipe stdin (do NOT use
+# `bash -s /path/to/script` — that waits for stdin and looks "stuck"):
+#   kcli ssh root@minio-dr -- bash -s < /path/on/hypervisor/.../scripts/install-minio-on-guest.sh
+#
+parameters:
+  network: default
+  disk_gb: 200
+
+minio-dr:
+  image: centos9stream
+  numcpus: 4
+  memory: 8192
+  uefi: true
+  start: true
+  nets:
+    - name: {{ network }}
+  disks:
+    - size: {{ disk_gb }}

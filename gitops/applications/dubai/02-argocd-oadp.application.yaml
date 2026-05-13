@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hcp-dr-oadp-minio
+  namespace: openshift-gitops
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/CHANGEME_ORG/hcp-dr-oadp-gitops.git
+    targetRevision: main
+    path: manifests/oadp
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: openshift-adp
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

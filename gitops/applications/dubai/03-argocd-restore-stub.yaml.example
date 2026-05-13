@@ -1,0 +1,21 @@
+# Optional: Argo CD Application that points ONLY at static restore helpers (no Velero Restore CR).
+# Prefer: run restore with `oc` / hypershift per upstream DR guide.
+#
+# This file is a stub — empty path would fail. Do not apply until you add your own
+# manifests under manifests/restore/gitops-safe/ (e.g. post-restore Jobs only).
+#
+# apiVersion: argoproj.io/v1alpha1
+# kind: Application
+# metadata:
+#   name: hcp-dr-post-restore-hooks
+#   namespace: openshift-gitops
+# spec:
+#   project: default
+#   source:
+#     repoURL: https://github.com/CHANGEME_ORG/hcp-dr-oadp-gitops.git
+#     targetRevision: main
+#     path: manifests/restore/gitops-safe
+#   destination:
+#     server: https://kubernetes.default.svc
+#     namespace: openshift-adp
+#   syncPolicy: {}

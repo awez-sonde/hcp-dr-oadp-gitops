@@ -1,0 +1,4 @@
+# Local secrets / kubeconfigs
+*.kubeconfig
+.env
+**/secret-*.local.yaml

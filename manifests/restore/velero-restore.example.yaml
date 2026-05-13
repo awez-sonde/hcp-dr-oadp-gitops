@@ -1,0 +1,21 @@
+# Apply once on Dubai (or ACM) after a backup exists. Do NOT leave this under an Argo CD
+# Application with automated sync — restores are one-shot.
+#
+#   oc apply -f manifests/restore/velero-restore.example.yaml
+#
+# Then follow HyperShift DR restore steps (hypershift CLI / docs), update DNS, etc.
+#
+apiVersion: velero.io/v1
+kind: Restore
+metadata:
+  name: hcp-restore-once
+  namespace: openshift-adp
+spec:
+  backupName: REPLACE_WITH_VELERO_BACKUP_NAME
+  excludedResources:
+    - nodes
+    - events
+    - events.events.k8s.io
+    - backups.velero.io
+    - restores.velero.io
+    - resticrepositories.velero.io

@@ -1,0 +1,32 @@
+# MinIO S3-compatible backup store. Replace CHANGEME:s3Url with http(s)://<minio-vm-ip>:9000
+# Bucket must exist (e.g. mc mb dr/velero). Region/profile values satisfy the AWS plugin.
+apiVersion: oadp.openshift.io/v1alpha1
+kind: DataProtectionApplication
+metadata:
+  name: dpa-minio
+  namespace: openshift-adp
+spec:
+  configuration:
+    velero:
+      defaultPlugins:
+        - openshift
+        - aws
+      featureFlags:
+        - EnableCSI
+    nodeAgent:
+      enable: false
+  backupLocations:
+    - velero:
+        provider: aws
+        default: true
+        credential:
+          name: cloud-credentials-velero
+          key: cloud
+        objectStorage:
+          bucket: velero
+          prefix: hcp-dr
+        config:
+          region: minio
+          profile: "default"
+          s3Url: http://CHANGEME_MINIO_IP:9000
+          s3ForcePathStyle: "true"

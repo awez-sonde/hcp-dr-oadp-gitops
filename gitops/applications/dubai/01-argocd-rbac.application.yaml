@@ -1,0 +1,23 @@
+# Same as ACM: install GitOps bootstrap on Dubai, apply RBAC binding, then these Applications.
+# Edit repoURL to your fork. Use a branch or overlay if Dubai needs different MinIO URL in DPA
+# (e.g. kustomize overlay under manifests/oadp/overlays/dubai — add yourself if required).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hcp-dr-gitops-rbac
+  namespace: openshift-gitops
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/CHANGEME_ORG/hcp-dr-oadp-gitops.git
+    targetRevision: main
+    path: gitops/rbac
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: openshift-gitops
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true
