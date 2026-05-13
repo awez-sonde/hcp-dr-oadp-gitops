@@ -17,6 +17,7 @@ spec:
         - EnableCSI
     nodeAgent:
       enable: false
+      uploaderType: kopia
   backupLocations:
     - velero:
         provider: aws
