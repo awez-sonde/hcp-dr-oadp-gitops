@@ -5,6 +5,8 @@ kind: DataProtectionApplication
 metadata:
   name: dpa-minio
   namespace: openshift-adp
+  annotations:
+    argocd.argoproj.io/sync-wave: "11"
 spec:
   configuration:
     velero:
