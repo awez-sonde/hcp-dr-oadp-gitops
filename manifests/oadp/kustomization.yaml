@@ -1,11 +1,11 @@
+# Aggregates operator + DPA. For Argo CD use separate Applications on manifests/oadp/operator
+# and manifests/oadp/config so the DPA is not validated before OADP CRDs exist.
+# Manual: oc apply -k manifests/oadp/operator/ then, after CSV is ready, oc apply -k manifests/oadp/config/
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 namespace: openshift-adp
 
 resources:
-  - namespace.yaml
-  - operatorgroup.yaml
-  - subscription.yaml
-  - secret-cloud-credentials.yaml
-  - dpa-minio.yaml
+  - operator
+  - config

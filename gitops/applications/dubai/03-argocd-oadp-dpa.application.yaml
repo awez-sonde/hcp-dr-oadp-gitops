@@ -1,0 +1,27 @@
+# Apply after hcp-dr-oadp-operator is Synced and the OADP CSV is Succeeded (CRDs exist).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hcp-dr-oadp-dpa
+  namespace: openshift-gitops
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/CHANGEME_ORG/hcp-dr-oadp-gitops.git
+    targetRevision: main
+    path: manifests/oadp/config
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: openshift-adp
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 30
+      backoff:
+        duration: 20s
+        factor: 2
+        maxDuration: 5m
+    syncOptions:
+      - CreateNamespace=true

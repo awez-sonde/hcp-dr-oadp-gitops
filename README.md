@@ -33,7 +33,9 @@ OADP for hosted-cluster backup runs on the **management** cluster where MCE or H
 | `scripts/apply-bootstrap-gitops.sh` | Applies the OpenShift GitOps operator bundle once per cluster (cluster-admin). |
 | `bootstrap/openshift-gitops/` | OperatorGroup, Subscription, and namespace for OpenShift GitOps. |
 | `gitops/rbac/` | ClusterRole and binding so the Argo CD **application-controller** service account can manage HyperShift, OADP, and Velero APIs. |
-| `manifests/oadp/` | Namespace, OperatorGroup, Subscription, cleartext MinIO `Secret` (POC only), and `DataProtectionApplication` for S3. |
+| `manifests/oadp/operator/` | Namespace, OperatorGroup, Subscription, cleartext MinIO `Secret` (POC only). Synced first by Argo CD. |
+| `manifests/oadp/config/` | `DataProtectionApplication` only. Synced by a **second** Argo `Application` after the OADP CSV installs CRDs (see below). |
+| `manifests/oadp/kustomization.yaml` | Aggregates `operator` + `config` for local `kubectl kustomize`; prefer two-step `oc apply` or two Argo apps. |
 | `gitops/applications/acm/` | Argo CD `Application` resources aimed at the primary (ACM) cluster. |
 | `gitops/applications/dubai/` | Same pattern for the **backup** cluster (example name Dubai OCP), including optional manifests for restore-oriented GitOps. |
 | `manifests/restore/` | Example Velero restore manifest; edit names and timing before use. |
@@ -44,7 +46,7 @@ OADP for hosted-cluster backup runs on the **management** cluster where MCE or H
 
 1. Provide **S3-compatible storage** and a bucket; ensure **both** management clusters have network reachability and correct credentials.
 2. On **each** management cluster, install OpenShift GitOps from `bootstrap/openshift-gitops/`, wait until Argo CD is ready, then apply `gitops/rbac/` so Applications can reconcile cluster-scoped resources.
-3. Point every Argo CD `Application` at **your** Git remote (`spec.source.repoURL` and `targetRevision`). For this POC, `manifests/oadp` already pins the reference MinIO URL and credentials in Git; fork and edit if your lab differs.
+3. Point every Argo CD `Application` at **your** Git remote (`spec.source.repoURL` and `targetRevision`). For this POC, `manifests/oadp/operator` and `manifests/oadp/config` pin the reference MinIO URL and credentials in Git; fork and edit if your lab differs.
 4. Apply `gitops/applications/acm/` on the primary cluster, then `gitops/applications/dubai/` (or your renamed equivalent) on the backup cluster when you want a symmetric install.
 5. Take **hosted control plane backups** using the flow that matches your OpenShift and HyperShift versions ([HyperShift disaster recovery](https://hypershift.pages.dev/how-to/disaster-recovery/) and Red Hat OADP documentation).
 6. For a drill, follow your runbook on the backup cluster: coordinate **Velero restore**, **HyperShift restore**, and DNS or load balancing so API and application hostnames for the hosted cluster resolve to the endpoints on the recovery management cluster.
@@ -76,7 +78,25 @@ oc apply -f gitops/applications/acm/
 oc apply -f gitops/applications/dubai/   # or your fork’s path for the backup cluster
 ```
 
-If your MinIO endpoint, bucket, or keys differ from the committed POC values, edit `manifests/oadp/dpa-minio.yaml` and `manifests/oadp/secret-cloud-credentials.yaml`. The file `manifests/oadp/secret-cloud-credentials.env.example` documents the Velero `cloud` secret shape for other tooling.
+If your MinIO endpoint, bucket, or keys differ from the committed POC values, edit `manifests/oadp/config/dpa-minio.yaml` and `manifests/oadp/operator/secret-cloud-credentials.yaml`. The file `manifests/oadp/secret-cloud-credentials.env.example` documents the Velero `cloud` secret shape for other tooling.
+
+### Argo CD: two Applications for OADP
+
+Argo CD validates **all** resources in an `Application` before it applies any of them. The `DataProtectionApplication` CRD does not exist until the OADP operator CSV is installed, so a **single** Application that includes both the `Subscription` and the `DataProtectionApplication` fails validation and leaves everything **Missing**.
+
+This repo therefore uses two Applications on ACM (and the same pair on Dubai):
+
+| Application | Path | Purpose |
+|-------------|------|--------|
+| `hcp-dr-oadp-operator` | `manifests/oadp/operator` | Namespace, OperatorGroup, Subscription, Velero cloud `Secret`. |
+| `hcp-dr-oadp-dpa` | `manifests/oadp/config` | `DataProtectionApplication` only; retries until the CRD exists. |
+
+If you still have the old single Application **`hcp-dr-oadp-minio`**, delete it once, then push this repo and apply the folder again:
+
+```bash
+oc delete application.argoproj.io hcp-dr-oadp-minio -n openshift-gitops --ignore-not-found
+oc apply -f gitops/applications/acm/
+```
 
 Use a **public** Git remote with plain **HTTPS** if you want Argo CD to clone without repository credentials. Point `repoURL` at the same remote you push to. If the server cannot clone the revision in `targetRevision`, Applications will stay out of sync until the remote is reachable and the path exists at that revision.
 
