@@ -33,7 +33,7 @@ OADP for hosted-cluster backup runs on the **management** cluster where MCE or H
 | `scripts/apply-bootstrap-gitops.sh` | Applies the OpenShift GitOps operator bundle once per cluster (cluster-admin). |
 | `bootstrap/openshift-gitops/` | OperatorGroup, Subscription, and namespace for OpenShift GitOps. |
 | `gitops/rbac/` | ClusterRole and binding so the Argo CD **application-controller** service account can manage HyperShift, OADP, and Velero APIs. |
-| `manifests/oadp/` | Namespace, OperatorGroup, Subscription, credential secret template, and `DataProtectionApplication` for S3 (URL, bucket, and keys are yours to supply). |
+| `manifests/oadp/` | Namespace, OperatorGroup, Subscription, cleartext MinIO `Secret` (POC only), and `DataProtectionApplication` for S3. |
 | `gitops/applications/acm/` | Argo CD `Application` resources aimed at the primary (ACM) cluster. |
 | `gitops/applications/dubai/` | Same pattern for the **backup** cluster (example name Dubai OCP), including optional manifests for restore-oriented GitOps. |
 | `manifests/restore/` | Example Velero restore manifest; edit names and timing before use. |
@@ -44,7 +44,7 @@ OADP for hosted-cluster backup runs on the **management** cluster where MCE or H
 
 1. Provide **S3-compatible storage** and a bucket; ensure **both** management clusters have network reachability and correct credentials.
 2. On **each** management cluster, install OpenShift GitOps from `bootstrap/openshift-gitops/`, wait until Argo CD is ready, then apply `gitops/rbac/` so Applications can reconcile cluster-scoped resources.
-3. Point every Argo CD `Application` at **your** Git remote (`spec.source.repoURL` and `targetRevision`), and adjust `manifests/oadp` for your S3 URL, bucket, and credentials **without** committing real secrets to a shared remote.
+3. Point every Argo CD `Application` at **your** Git remote (`spec.source.repoURL` and `targetRevision`). For this POC, `manifests/oadp` already pins the reference MinIO URL and credentials in Git; fork and edit if your lab differs.
 4. Apply `gitops/applications/acm/` on the primary cluster, then `gitops/applications/dubai/` (or your renamed equivalent) on the backup cluster when you want a symmetric install.
 5. Take **hosted control plane backups** using the flow that matches your OpenShift and HyperShift versions ([HyperShift disaster recovery](https://hypershift.pages.dev/how-to/disaster-recovery/) and Red Hat OADP documentation).
 6. For a drill, follow your runbook on the backup cluster: coordinate **Velero restore**, **HyperShift restore**, and DNS or load balancing so API and application hostnames for the hosted cluster resolve to the endpoints on the recovery management cluster.
@@ -76,7 +76,7 @@ oc apply -f gitops/applications/acm/
 oc apply -f gitops/applications/dubai/   # or your fork’s path for the backup cluster
 ```
 
-Before applying the Applications, edit `manifests/oadp/dpa-minio.yaml` (or overlay it with kustomize) so `s3Url`, bucket, and related fields match your object store. Supply credentials via `secret-cloud-credentials.yaml` or your secret manager; `manifests/oadp/secret-cloud-credentials.env.example` shows the expected key shape for the Velero cloud secret.
+If your MinIO endpoint, bucket, or keys differ from the committed POC values, edit `manifests/oadp/dpa-minio.yaml` and `manifests/oadp/secret-cloud-credentials.yaml`. The file `manifests/oadp/secret-cloud-credentials.env.example` documents the Velero `cloud` secret shape for other tooling.
 
 Use a **public** Git remote with plain **HTTPS** if you want Argo CD to clone without repository credentials. Point `repoURL` at the same remote you push to. If the server cannot clone the revision in `targetRevision`, Applications will stay out of sync until the remote is reachable and the path exists at that revision.
 
@@ -99,4 +99,4 @@ Use a **public** Git remote with plain **HTTPS** if you want Argo CD to clone wi
 
 ## Disclaimer
 
-This repository is a **lab scaffold**. Harden RBAC, pin operator channels to supported versions, use sealed secrets or an external secrets operator for credentials, and validate every step against your support matrix before production use.
+This repository is a **lab / POC scaffold**. Cleartext object-store credentials are committed on purpose for frictionless GitOps; replace with sealed secrets, external secrets, or private overlays before any real environment. Harden RBAC, pin operator channels, and validate against your support matrix for production.

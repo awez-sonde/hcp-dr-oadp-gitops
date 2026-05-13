@@ -1,5 +1,5 @@
-# MinIO S3-compatible backup store. Replace CHANGEME:s3Url with http(s)://<minio-vm-ip>:9000
-# Bucket must exist (e.g. mc mb dr/velero). Region/profile values satisfy the AWS plugin.
+# MinIO S3-compatible backup store (reference lab VM on libvirt default network).
+# Bucket must exist (e.g. mc mb minio/velero). Region/profile values satisfy the AWS plugin.
 apiVersion: oadp.openshift.io/v1alpha1
 kind: DataProtectionApplication
 metadata:
@@ -28,5 +28,5 @@ spec:
         config:
           region: minio
           profile: "default"
-          s3Url: http://CHANGEME_MINIO_IP:9000
+          s3Url: http://192.168.122.8:9000
           s3ForcePathStyle: "true"
