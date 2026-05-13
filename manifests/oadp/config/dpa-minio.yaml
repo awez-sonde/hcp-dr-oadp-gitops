@@ -8,11 +8,14 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "11"
 spec:
+  # OADP 1.5 reconciles these defaults; keep them in Git so Argo stays Synced.
+  logFormat: text
   configuration:
     velero:
       defaultPlugins:
         - openshift
         - aws
+      disableFsBackup: false
       featureFlags:
         - EnableCSI
     nodeAgent:

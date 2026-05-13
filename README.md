@@ -91,12 +91,18 @@ This repo therefore uses two Applications on ACM (and the same pair on Dubai):
 | `hcp-dr-oadp-operator` | `manifests/oadp/operator` | Namespace, OperatorGroup, Subscription, Velero cloud `Secret`. |
 | `hcp-dr-oadp-dpa` | `manifests/oadp/config` | `DataProtectionApplication` only; retries until the CRD exists. |
 
-If you still have the old single Application **`hcp-dr-oadp-minio`**, delete it once, then push this repo and apply the folder again:
+If you still have the old single Application **`hcp-dr-oadp-minio`**, delete it once, then push and re-apply ACM apps:
 
 ```bash
 oc delete application.argoproj.io hcp-dr-oadp-minio -n openshift-gitops --ignore-not-found
 oc apply -f gitops/applications/acm/
 ```
+
+If `hcp-dr-oadp-dpa` stays **OutOfSync** while the cluster is healthy, it is usually **spec drift**: the OADP controller adds defaults (for example `spec.logFormat`, `spec.configuration.velero.disableFsBackup`) or a **`kubectl.kubernetes.io/last-applied-configuration`** annotation from a manual `oc apply`. This repo keeps the defaults in `manifests/oadp/config/dpa-minio.yaml` and uses **`ignoreDifferences`** on the `Application` for that annotation. After you push, refresh or sync the app once.
+
+For a manual check: `kubectl diff -f <(kubectl kustomize manifests/oadp/config) -n openshift-adp` should print nothing when Git matches the live DPA.
+
+The separate [oadp-virtualization-recovery-iac](https://github.com/awez-sonde/oadp-virtualization-recovery-iac) PoC uses **phased Argo apps** (setup vs workload vs manual backup/recovery); the same idea applies here: operator manifests first, DPA second, and keep Git aligned with what the operator reconciles so Argo reports **Synced**.
 
 Use a **public** Git remote with plain **HTTPS** if you want Argo CD to clone without repository credentials. Point `repoURL` at the same remote you push to. If the server cannot clone the revision in `targetRevision`, Applications will stay out of sync until the remote is reachable and the path exists at that revision.
 
