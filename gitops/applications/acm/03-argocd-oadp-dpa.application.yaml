@@ -31,3 +31,5 @@ spec:
         maxDuration: 5m
     syncOptions:
       - CreateNamespace=true
+      # DPA strategic-merge patches can fail validation when toggling nodeAgent; replace applies full spec from Git.
+      - Replace=true

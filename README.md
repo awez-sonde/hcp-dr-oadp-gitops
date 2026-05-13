@@ -122,7 +122,7 @@ On ACM, this repository aims for:
 - **OADP + Velero + DPA** with plugins and settings aligned to [HyperShift OADP 1.5+ DR](https://hypershift.pages.dev/how-to/disaster-recovery/backup-and-restore-oadp-1-5/) (including `hypershift` and `csi` Velero plugins, snapshot location, and **node agent** for data mover–style backups).
 - A **Velero `Schedule`** (`manifests/hcp-backup/`) applied by Argo (`hcp-dr-hcp-backup`) so **recurring** hosted control plane backups run on a cron after the stack is healthy.
 
-You must still **edit** `manifests/hcp-backup/scheduled-backup-hosted-control-plane.yaml` for the correct **`includedNamespaces`** (and optional resource list) for *your* `HostedCluster` / `HostedControlPlane` layout. The sample uses **`hcp1-hcp1`** from the reference lab. For ad-hoc backups without a schedule, copy `manifests/hcp-backup/backup-once.example.yaml`, choose a **unique** `metadata.name`, and `oc apply` it (that file is intentionally **not** part of the kustomize bundle).
+You must still **edit** `manifests/hcp-backup/scheduled-backup-hosted-control-plane.yaml` for the correct **`spec.template.includedNamespaces`** (Velero’s `template` is a flat `BackupSpec`, not `template.spec`) and cron. The sample uses **`hcp1-hcp1`**. For a one-off backup, copy `manifests/hcp-backup/backup-once.example.yaml`, set a **unique** `metadata.name`, and `oc apply` it (that file is not in the kustomize bundle).
 
 If CSI snapshot upload or the data mover does not match your storage, switch to the **non-CSI** backup pattern in the same HyperShift doc (for example `defaultVolumesToFsBackup: true` and no `snapshotMoveData`) and adjust the DPA accordingly.
 
