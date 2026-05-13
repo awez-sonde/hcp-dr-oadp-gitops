@@ -1,0 +1,45 @@
+# One-off Velero Backup (not applied by kustomization.yaml — copy or apply manually).
+# Use a unique metadata.name each time (or delete the Backup CR before re-using the same name).
+# Edit includedNamespaces to match your HostedCluster / HostedControlPlane namespaces.
+---
+apiVersion: velero.io/v1
+kind: Backup
+metadata:
+  name: hcp-control-plane-manual
+  namespace: openshift-adp
+  labels:
+    velero.io/storage-location: default
+spec:
+  csiSnapshotTimeout: 10m0s
+  datamover: velero
+  defaultVolumesToFsBackup: false
+  excludedResources: []
+  hooks: {}
+  includedNamespaces:
+    - hcp1-hcp1
+  includedResources:
+    - sa
+    - role
+    - rolebinding
+    - pod
+    - pvc
+    - pv
+    - configmap
+    - priorityclasses
+    - pdb
+    - hostedcluster
+    - nodepool
+    - secrets
+    - services
+    - deployments
+    - statefulsets
+    - hostedcontrolplane
+    - cluster
+    - machinedeployment
+    - machineset
+    - machine
+    - route
+  snapshotMoveData: true
+  snapshotVolumes: true
+  storageLocation: default
+  ttl: 720h0m0s

@@ -1,0 +1,9 @@
+# Velero Schedule for recurring hosted control plane backups (management cluster).
+# Edit scheduled-backup-hosted-control-plane.yaml for includedNamespaces and cron.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: openshift-adp
+
+resources:
+  - scheduled-backup-hosted-control-plane.yaml

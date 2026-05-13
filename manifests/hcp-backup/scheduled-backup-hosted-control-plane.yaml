@@ -1,0 +1,55 @@
+# Velero Schedule — hosted control plane (HyperShift) backup template.
+# Adjust spec.schedule and spec.template.spec.includedNamespaces for your lab.
+# Derived from: https://hypershift.pages.dev/how-to/disaster-recovery/backup-and-restore-oadp-1-5/
+# (CSI / data-mover style; requires DPA with hypershift + CSI plugins and nodeAgent enabled.)
+---
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: hcp-control-plane-gitops
+  namespace: openshift-adp
+  labels:
+    velero.io/storage-location: default
+    hcp-dr-gitops.lab/component: hosted-control-plane
+spec:
+  schedule: "0 7 * * *"
+  skipImmediately: false
+  template:
+    metadata:
+      labels:
+        hcp-dr-gitops.lab/source: schedule
+    spec:
+      csiSnapshotTimeout: 10m0s
+      datamover: velero
+      defaultVolumesToFsBackup: false
+      excludedResources: []
+      hooks: {}
+      includedNamespaces:
+        # Reference lab: single namespace hosts HostedControlPlane "hcp1"
+        - hcp1-hcp1
+      includedResources:
+        - sa
+        - role
+        - rolebinding
+        - pod
+        - pvc
+        - pv
+        - configmap
+        - priorityclasses
+        - pdb
+        - hostedcluster
+        - nodepool
+        - secrets
+        - services
+        - deployments
+        - statefulsets
+        - hostedcontrolplane
+        - cluster
+        - machinedeployment
+        - machineset
+        - machine
+        - route
+      snapshotMoveData: true
+      snapshotVolumes: true
+      storageLocation: default
+      ttl: 720h0m0s

@@ -1,5 +1,7 @@
 # MinIO S3-compatible backup store (reference lab VM on libvirt default network).
-# Bucket must exist (e.g. mc mb minio/velero). Region/profile values satisfy the AWS plugin.
+# Aligned with OADP 1.5+ HyperShift DR guidance (hypershift + CSI plugins, snapshot upload).
+# See: https://hypershift.pages.dev/how-to/disaster-recovery/backup-and-restore-oadp-1-5/
+# Bucket must exist (e.g. mc mb minio/velero).
 apiVersion: oadp.openshift.io/v1alpha1
 kind: DataProtectionApplication
 metadata:
@@ -8,19 +10,7 @@ metadata:
   annotations:
     argocd.argoproj.io/sync-wave: "11"
 spec:
-  # OADP 1.5 reconciles these defaults; keep them in Git so Argo stays Synced.
   logFormat: text
-  configuration:
-    velero:
-      defaultPlugins:
-        - openshift
-        - aws
-      disableFsBackup: false
-      featureFlags:
-        - EnableCSI
-    nodeAgent:
-      enable: false
-      uploaderType: kopia
   backupLocations:
     - velero:
         provider: aws
@@ -36,3 +26,26 @@ spec:
           profile: "default"
           s3Url: http://192.168.122.8:9000
           s3ForcePathStyle: "true"
+  snapshotLocations:
+    - velero:
+        provider: aws
+        config:
+          region: minio
+          profile: "default"
+        credential:
+          key: cloud
+          name: cloud-credentials-velero
+  configuration:
+    velero:
+      defaultPlugins:
+        - openshift
+        - aws
+        - csi
+        - hypershift
+      disableFsBackup: false
+      featureFlags:
+        - EnableCSI
+      resourceTimeout: 2h
+    nodeAgent:
+      enable: true
+      uploaderType: kopia

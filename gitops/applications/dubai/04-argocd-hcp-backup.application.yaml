@@ -1,0 +1,27 @@
+# Optional: same Schedule on the backup cluster if you run backups there too (uncommon).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hcp-dr-hcp-backup
+  namespace: openshift-gitops
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/CHANGEME_ORG/hcp-dr-oadp-gitops.git
+    targetRevision: main
+    path: manifests/hcp-backup
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: openshift-adp
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 15
+      backoff:
+        duration: 15s
+        factor: 2
+        maxDuration: 5m
+    syncOptions:
+      - CreateNamespace=true
