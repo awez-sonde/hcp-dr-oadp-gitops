@@ -8,7 +8,7 @@ metadata:
   name: hcp-control-plane-manual
   namespace: openshift-adp
   labels:
-    velero.io/storage-location: default
+    velero.io/storage-location: dpa-minio-1
 spec:
   csiSnapshotTimeout: 10m0s
   datamover: velero
@@ -41,5 +41,5 @@ spec:
     - route
   snapshotMoveData: true
   snapshotVolumes: true
-  storageLocation: default
+  storageLocation: dpa-minio-1
   ttl: 720h0m0s
