@@ -1,23 +1,27 @@
-# Same as ACM: install GitOps bootstrap on Dubai, apply RBAC binding, then these Applications.
-# Edit repoURL to your fork. Use a branch or overlay if Dubai needs different MinIO URL in DPA
-# (e.g. kustomize overlay under manifests/oadp/overlays/dubai — add yourself if required).
+# Install MetalLB operator on Dubai OCP (before hcp-dr-metallb-config; CSV must install CRDs).
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: hcp-dr-gitops-rbac
+  name: hcp-dr-metallb-operator
   namespace: openshift-gitops
 spec:
   project: default
   source:
     repoURL: https://github.com/awez-sonde/hcp-dr-oadp-gitops.git
     targetRevision: main
-    path: gitops/rbac
+    path: manifests/metallb/operator
   destination:
     server: https://kubernetes.default.svc
-    namespace: openshift-gitops
+    namespace: metallb-system
   syncPolicy:
     automated:
       prune: true
       selfHeal: true
+    retry:
+      limit: 15
+      backoff:
+        duration: 15s
+        factor: 2
+        maxDuration: 5m
     syncOptions:
       - CreateNamespace=true

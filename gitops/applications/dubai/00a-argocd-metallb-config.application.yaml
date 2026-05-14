@@ -1,0 +1,46 @@
+# MetalLB instance + L2 pool 192.168.122.31-40 (apply after hcp-dr-metallb-operator CSV is Succeeded).
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hcp-dr-metallb-config
+  namespace: openshift-gitops
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/awez-sonde/hcp-dr-oadp-gitops.git
+    targetRevision: main
+    path: manifests/metallb/config
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: metallb-system
+  ignoreDifferences:
+    - group: metallb.io
+      kind: MetalLB
+      jsonPointers:
+        - /metadata/annotations/argocd.argoproj.io~1tracking-id
+        - /metadata/annotations/kubectl.kubernetes.io~1last-applied-configuration
+        - /status
+    - group: metallb.io
+      kind: IPAddressPool
+      jsonPointers:
+        - /metadata/annotations/argocd.argoproj.io~1tracking-id
+        - /metadata/annotations/kubectl.kubernetes.io~1last-applied-configuration
+        - /status
+    - group: metallb.io
+      kind: L2Advertisement
+      jsonPointers:
+        - /metadata/annotations/argocd.argoproj.io~1tracking-id
+        - /metadata/annotations/kubectl.kubernetes.io~1last-applied-configuration
+        - /status
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 30
+      backoff:
+        duration: 20s
+        factor: 2
+        maxDuration: 5m
+    syncOptions:
+      - CreateNamespace=true

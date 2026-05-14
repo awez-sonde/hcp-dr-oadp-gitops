@@ -1,0 +1,9 @@
+# MetalLB controller/speaker wiring (apply after metallb-operator CSV is Succeeded).
+apiVersion: metallb.io/v1beta1
+kind: MetalLB
+metadata:
+  name: metallb
+  namespace: metallb-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "10"
+spec: {}
