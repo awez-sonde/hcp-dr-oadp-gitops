@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HCP1 data plane demo</title>
+  <style>
+    :root { color-scheme: dark; }
+    body {
+      margin: 0; min-height: 100vh; font-family: "JetBrains Mono", "Consolas", monospace;
+      background: radial-gradient(ellipse at center, #1a1a2e 0%, #0f0f1a 70%);
+      color: #e0e0ff; display: flex; flex-direction: column; align-items: center;
+      padding: 1rem;
+    }
+    h1 { font-size: 1.1rem; letter-spacing: 0.08em; text-transform: uppercase; color: #7cfc00; text-shadow: 0 0 12px #7cfc0088; }
+    p { max-width: 42rem; text-align: center; line-height: 1.5; opacity: 0.9; }
+    #board {
+      margin-top: 0.5rem; border: 4px solid #4169e1; border-radius: 4px;
+      box-shadow: 0 0 24px #4169e166, inset 0 0 40px #0006; image-rendering: pixelated;
+    }
+    .hud { margin-top: 0.75rem; font-size: 0.95rem; }
+    .keys { color: #ffd700; margin-top: 0.5rem; font-size: 0.85rem; }
+    #tick { color: #7cfc00; }
+  </style>
+</head>
+<body>
+  <h1>Hosted cluster worker demo</h1>
+  <p>
+    This page is served from a <strong>pod on your HyperShift data plane</strong> (workers), not the management cluster API.
+    Use arrow keys to move; eat dots. If you shut down the <strong>ACM hosting VMs</strong> and this still loads, your demo worked.
+  </p>
+  <canvas id="board" width="360" height="360" aria-label="mini dot maze"></canvas>
+  <div class="hud">Score: <span id="score">0</span> &nbsp;|&nbsp; Dots left: <span id="left">0</span></div>
+  <div class="keys">Arrows to move &middot; R reset</div>
+  <div class="hud">Page time: <span id="tick">0</span>s</div>
+  <script>
+    const canvas = document.getElementById("board");
+    const ctx = canvas.getContext("2d");
+    const cell = 18;
+    const cols = Math.floor(canvas.width / cell);
+    const rows = Math.floor(canvas.height / cell);
+    let px = 1, py = 1, dots = new Set(), score = 0;
+
+    function mazeWalls(c, r) {
+      if (c === 0 || r === 0 || c === cols - 1 || r === rows - 1) return true;
+      if ((c % 3 === 0 && r % 2 === 0) || (r % 3 === 0 && c % 2 === 0)) return true;
+      if (c === 9 && r > 2 && r < rows - 3) return true;
+      return false;
+    }
+
+    function reset() {
+      dots.clear();
+      for (let r = 1; r < rows - 1; r++)
+        for (let c = 1; c < cols - 1; c++)
+          if (!mazeWalls(c, r) && !(c === px && r === py)) dots.add(c + "," + r);
+      px = 1; py = 1; score = 0;
+      document.getElementById("left").textContent = dots.size;
+    }
+
+    function draw() {
+      ctx.fillStyle = "#0a0a12";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      for (let r = 0; r < rows; r++)
+        for (let c = 0; c < cols; c++) {
+          const x = c * cell, y = r * cell;
+          if (mazeWalls(c, r)) {
+            ctx.fillStyle = "#2a3f6f";
+            ctx.fillRect(x, y, cell - 1, cell - 1);
+          }
+        }
+      ctx.fillStyle = "#ffd700";
+      for (const k of dots) {
+        const [c, r] = k.split(",").map(Number);
+        ctx.beginPath();
+        ctx.arc(c * cell + cell / 2, r * cell + cell / 2, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.fillStyle = "#7cfc00";
+      ctx.beginPath();
+      ctx.arc(px * cell + cell / 2, py * cell + cell / 2, cell * 0.35, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    function tryMove(dx, dy) {
+      const nx = px + dx, ny = py + dy;
+      if (nx < 0 || ny < 0 || nx >= cols || ny >= rows) return;
+      if (mazeWalls(nx, ny)) return;
+      px = nx; py = ny;
+      const key = nx + "," + ny;
+      if (dots.has(key)) {
+        dots.delete(key);
+        score++;
+        document.getElementById("score").textContent = score;
+        document.getElementById("left").textContent = dots.size;
+      }
+      draw();
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowUp") { e.preventDefault(); tryMove(0, -1); }
+      if (e.key === "ArrowDown") { e.preventDefault(); tryMove(0, 1); }
+      if (e.key === "ArrowLeft") { e.preventDefault(); tryMove(-1, 0); }
+      if (e.key === "ArrowRight") { e.preventDefault(); tryMove(1, 0); }
+      if (e.key === "r" || e.key === "R") { reset(); draw(); }
+    });
+
+    let t0 = Date.now();
+    setInterval(() => {
+      document.getElementById("tick").textContent = ((Date.now() - t0) / 1000).toFixed(0);
+    }, 500);
+
+    reset();
+    draw();
+  </script>
+</body>
+</html>

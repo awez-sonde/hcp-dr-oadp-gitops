@@ -1,0 +1,73 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: etcd-data-chown
+  namespace: hcp1-hcp1
+spec:
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: etcd-data-chown
+    spec:
+      serviceAccountName: etcd-data-chown
+      restartPolicy: Never
+      securityContext:
+        runAsUser: 0
+      tolerations:
+        - key: hypershift.openshift.io/cluster
+          operator: Equal
+          value: hcp1-hcp1
+          effect: NoSchedule
+        - key: hypershift.openshift.io/control-plane
+          operator: Equal
+          value: "true"
+          effect: NoSchedule
+      containers:
+        - name: chown
+          image: registry.access.redhat.com/ubi9/ubi-minimal:9.4
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          command: ["/bin/bash", "-lc"]
+          args:
+            - |
+              set -euxo pipefail
+              ETCD_UID=1000890000
+              ETCD_GID=1000890000
+              for mp in /vol0 /vol1 /vol2; do
+                if [[ ! -d "${mp}" ]]; then
+                  echo "skip missing ${mp}"
+                  continue
+                fi
+                echo "== fixing ${mp} =="
+                ls -la "${mp}" || true
+                # etcd mounts PVC at /var/lib; data lives in data/
+                if [[ -d "${mp}/data" ]]; then
+                  chown -R "${ETCD_UID}:${ETCD_GID}" "${mp}/data"
+                  chmod -R u+rwX "${mp}/data"
+                else
+                  chown -R "${ETCD_UID}:${ETCD_GID}" "${mp}"
+                  chmod -R u+rwX "${mp}"
+                fi
+                ls -la "${mp}" || true
+              done
+              echo done
+          volumeMounts:
+            - name: etcd-0
+              mountPath: /vol0
+            - name: etcd-1
+              mountPath: /vol1
+            - name: etcd-2
+              mountPath: /vol2
+      volumes:
+        - name: etcd-0
+          persistentVolumeClaim:
+            claimName: data-etcd-0
+        - name: etcd-1
+          persistentVolumeClaim:
+            claimName: data-etcd-1
+        - name: etcd-2
+          persistentVolumeClaim:
+            claimName: data-etcd-2
