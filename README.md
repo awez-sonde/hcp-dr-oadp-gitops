@@ -38,7 +38,7 @@ OADP for hosted-cluster backup runs on the **management** cluster where MCE or H
 | `manifests/oadp/kustomization.yaml` | Aggregates `operator` + `config` for local `kubectl kustomize`; prefer two-step `oc apply` or two Argo apps. |
 | `manifests/hcp-backup/` | Velero `Schedule` for recurring **hosted control plane** backups (GitOps). Optional `backup-once.example.yaml` for a manual one-off (not in kustomize). |
 | `gitops/applications/acm/` | Argo CD `Application` resources aimed at the primary (ACM) cluster. |
-| `gitops/applications/dubai/` | Same pattern for the **backup** cluster (example name Dubai OCP), including optional manifests for restore-oriented GitOps. |
+| `gitops/applications/dubai/` | Same pattern for the **backup** cluster (example name Dubai OCP). The one-shot Velero restore Argo `Application` is under `gitops/applications/dubai/examples/` so a flat `oc apply -f gitops/applications/dubai/` does not recreate it by accident. |
 | `manifests/restore/` | Example Velero restore manifest; edit before restore drills. |
 
 ---
