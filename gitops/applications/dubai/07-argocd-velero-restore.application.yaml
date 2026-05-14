@@ -1,0 +1,36 @@
+# One-shot Velero restore for hosted control plane on Dubai. **Manual sync only** — do not enable
+# automated sync or you may re-trigger restores on every commit.
+#
+# Workflow: push manifests/restore/dubai with the correct spec.backupName → apply this Application
+# → in Argo CD UI click Sync once on hcp-dr-velero-restore → watch Restore phase.
+#
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hcp-dr-velero-restore
+  namespace: openshift-gitops
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/awez-sonde/hcp-dr-oadp-gitops.git
+    targetRevision: main
+    path: manifests/restore/dubai
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: openshift-adp
+  ignoreDifferences:
+    - group: velero.io
+      kind: Restore
+      jsonPointers:
+        - /metadata/annotations/argocd.argoproj.io~1tracking-id
+        - /metadata/annotations/kubectl.kubernetes.io~1last-applied-configuration
+        - /status
+  syncPolicy:
+    retry:
+      limit: 5
+      backoff:
+        duration: 30s
+        factor: 2
+        maxDuration: 5m
+    syncOptions:
+      - CreateNamespace=true
