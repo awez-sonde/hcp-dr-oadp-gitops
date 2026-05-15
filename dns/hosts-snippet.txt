@@ -1,0 +1,3 @@
+# Append to /etc/hosts on your workstation (or use internal DNS) — adjust domain if yours differs.
+# MetalLB VIP for kube-apiserver LoadBalancer in hcp1-hcp1 on Dubai OCP:
+192.168.122.31  api.hcp1.awezlab.local

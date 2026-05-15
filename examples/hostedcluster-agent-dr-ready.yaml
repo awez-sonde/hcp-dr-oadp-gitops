@@ -1,0 +1,61 @@
+# Example HostedCluster fragment for Agent/bare-metal lab — aligned with HyperShift DR prerequisites.
+# https://hypershift.pages.dev/how-to/disaster-recovery/prerequisites/
+#
+# BEFORE apply:
+#   - Install MCE/HyperShift on ACM.
+#   - Install MetalLB on ACM (manifests/metallb-acm/) and reserve an IP for the API LB.
+#   - Point DNS: api.hcp1.awezlab.local -> that MetalLB VIP (libvirt dns / HAProxy).
+#   - InfraEnv in a namespace separate from where HCP namespace will be (e.g. agents in hcp1).
+#   - Create pull-secret, ssh-key secret, etc. per your install method (hypershift CLI or ACM UI).
+#
+# This file is NOT a complete install manifest — merge services/platform into your real HostedCluster.
+---
+apiVersion: hypershift.openshift.io/v1beta1
+kind: HostedCluster
+metadata:
+  name: hcp1
+  namespace: hcp1
+spec:
+  dns:
+    baseDomain: awezlab.local
+  etcd:
+    managed:
+      storage:
+        persistentVolume:
+          size: 8Gi
+        type: PersistentVolume
+    managementType: Managed
+  release:
+    image: quay.io/openshift-release-dev/ocp-release:4.21.14-multi
+  platform:
+    agent:
+      agentNamespace: hcp1
+    type: Agent
+  services:
+    # CRITICAL for DR: stable API hostname (DNS -> MetalLB VIP on each management site)
+    - service: APIServer
+      servicePublishingStrategy:
+        type: LoadBalancer
+        loadBalancer:
+          hostname: api.hcp1.awezlab.local
+    - service: OAuthServer
+      servicePublishingStrategy:
+        type: Route
+        route:
+          hostname: oauth.hcp1.awezlab.local
+    - service: OIDC
+      servicePublishingStrategy:
+        type: Route
+        route:
+          hostname: oidc.hcp1.awezlab.local
+    - service: Konnectivity
+      servicePublishingStrategy:
+        type: Route
+        route:
+          hostname: konnectivity.hcp1.awezlab.local
+    - service: Ignition
+      servicePublishingStrategy:
+        type: Route
+        route:
+          hostname: ignition.hcp1.awezlab.local
+  # pullSecret, sshKey, networking, etc. — add per your environment

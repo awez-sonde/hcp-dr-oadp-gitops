@@ -1,0 +1,67 @@
+# Fix NFS volume ownership for MCE assisted-service / postgres / image-service (runAsUser/fsGroup 1000750000).
+# Apply after fresh ACM install if pods show permission denied on /data or postgres chmod failures.
+#
+#   oc apply -k manifests/mce-nfs-perm-fix/
+#   oc wait --for=condition=complete job/mce-nfs-perm-fix -n multicluster-engine --timeout=300s
+#   oc delete pod -n multicluster-engine assisted-image-service-0
+#   oc delete pod -n multicluster-engine -l app=assisted-service
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: mce-nfs-perm-fix
+  namespace: multicluster-engine
+spec:
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 86400
+  template:
+    spec:
+      serviceAccountName: mce-nfs-perm-fix
+      restartPolicy: Never
+      securityContext:
+        runAsUser: 0
+      tolerations:
+        - key: node-role.kubernetes.io/infra
+          operator: Exists
+          effect: NoSchedule
+        - key: dedicated
+          operator: Exists
+          effect: NoSchedule
+      containers:
+        - name: chown
+          image: registry.access.redhat.com/ubi9/ubi-minimal:9.4
+          securityContext:
+            privileged: true
+            runAsUser: 0
+          command: ["/bin/bash", "-lc"]
+          args:
+            - |
+              set -euxo pipefail
+              FIX_UID=1000750000
+              FIX_GID=1000750000
+              for mp in /image-data /postgres-data /assisted-data; do
+                if [[ -d "$mp" ]]; then
+                  echo "== fixing $mp =="
+                  ls -la "$mp" || true
+                  chown -R "${FIX_UID}:${FIX_GID}" "$mp"
+                  chmod -R u+rwX "$mp"
+                  ls -la "$mp" || true
+                fi
+              done
+              echo done
+          volumeMounts:
+            - name: image-data
+              mountPath: /image-data
+            - name: postgres-data
+              mountPath: /postgres-data
+            - name: assisted-data
+              mountPath: /assisted-data
+      volumes:
+        - name: image-data
+          persistentVolumeClaim:
+            claimName: image-service-data-assisted-image-service-0
+        - name: postgres-data
+          persistentVolumeClaim:
+            claimName: postgres
+        - name: assisted-data
+          persistentVolumeClaim:
+            claimName: assisted-service

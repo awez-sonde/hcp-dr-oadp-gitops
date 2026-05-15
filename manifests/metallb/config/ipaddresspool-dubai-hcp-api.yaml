@@ -1,5 +1,5 @@
 # L2 pool for LoadBalancer services on Dubai OCP (e.g. hosted cluster API on management).
-# Range is disjoint from ACM lab pool 192.168.122.10-20 (see ACM IPAddressPool acm-lab-pool).
+# Range is disjoint from ACM lab pool 192.168.122.11-20 (manifests/metallb-acm/).
 apiVersion: metallb.io/v1beta1
 kind: IPAddressPool
 metadata:

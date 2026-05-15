@@ -1,0 +1,65 @@
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  annotations:
+    service.beta.openshift.io/inject-cabundle: "true"
+  creationTimestamp: "2026-04-07T14:33:29Z"
+  generation: 2
+  name: hypershift.openshift.io
+  resourceVersion: "81944"
+  uid: bd5e1c88-bc0c-4b12-8cf8-9f3b83292d67
+webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURVVENDQWptZ0F3SUJBZ0lJUWpuMHFFYTRLU1V3RFFZSktvWklodmNOQVFFTEJRQXdOakUwTURJR0ExVUUKQXd3cmIzQmxibk5vYVdaMExYTmxjblpwWTJVdGMyVnlkbWx1WnkxemFXZHVaWEpBTVRjM05UVTFPRFF5TnpBZQpGdzB5TmpBME1EY3hNRFF3TWpaYUZ3MHlPREEyTURVeE1EUXdNamRhTURZeE5EQXlCZ05WQkFNTUsyOXdaVzV6CmFHbG1kQzF6WlhKMmFXTmxMWE5sY25acGJtY3RjMmxuYm1WeVFERTNOelUxTlRnME1qY3dnZ0VpTUEwR0NTcUcKU0liM0RRRUJBUVVBQTRJQkR3QXdnZ0VLQW9JQkFRRFYra2NTTjU3b3crSmpKTE42aEZkK2lsRXlQR1JTRjdKNApWeHp0b0oxOVgzWVJrMEpRTGJnZE1iNHpHSk9aVWY4WFhTbVhlZ2ZJYmU4TEw1RmdOQVJHRkJmV0dPRVdmcXlWCldLbXgwckYySzJqUWs3RlhiaG45YWNwQXZRSTRnRjREblZMUFVzWk4vRzZUcmZVdGlLc0xlUkhEQTR3YjhRQUEKQkI1dVlFVUhMNDFDWHpZVzIvVlBYUzkyMWc3SUtMT25xZXNvZHN2aWdaQ2ZTdE8wUm83b0FCVXl3UWJOQ1NoQwpVeWxIS1VjQXdLZC9kY3FCNHhIbEtHaVpiUHptNEtlN1U2TENzUlcyWEF2SWN5aWlJS0RIUEhsenFETGp0VG5JCnNxU2lodk9pVmxJMmVicFA4S0FxVnhTSWErM1FnTFo4R2htc3pkeGRUcnovNXNReVBaSTlBZ01CQUFHall6QmgKTUE0R0ExVWREd0VCL3dRRUF3SUNwREFQQmdOVkhSTUJBZjhFQlRBREFRSC9NQjBHQTFVZERnUVdCQlREQnV3NgpWREJhQTBBdWswcUJkYlYwWHl5VWNqQWZCZ05WSFNNRUdEQVdnQlREQnV3NlZEQmFBMEF1azBxQmRiVjBYeXlVCmNqQU5CZ2txaGtpRzl3MEJBUXNGQUFPQ0FRRUF5YmE5amoxQ1E5eUVHNURzOTUra2J5L3lHMVRkdlBxY0t4M3gKdTdEQ0s5bTZzVkRWdG8rMmptc3hGMG9rVnA4NEJLaTdsa08xRDFUQ1dWVHQyVTB2dVY5QjcxZWFzOTB1QWZITQpmWXRVZHlkWU80U2VDQllDTVQ2Z1p4TFMvdHNUbjB6Q1Z0cnJaM0owU2xzS3pDNGhhU0JKU2NldU0rYW5YOGdNCktXdGQxTTlXOC80WVpwM2lSZGRnNHhWYlZPTnZKc1kzNlcyOEV4KzNlV2haNWJlZllLOUtJbURkMllPanpGKzUKdC9pVmFlOFVMbkdMWDk2VGJjSEl6aXErVUhmMFNEaWx2Qm1aVEZsTll1Z0FsQjZ5NEpsTmdDOFhSVzk3WXF5cwoyV0JzWU5RUXUzNGc2T2EyU0NsQ3B4RUR5UEFGMFdDaCtONTBVVlovZzNYVSt5VXdDdz09Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+    service:
+      name: operator
+      namespace: hypershift
+      path: /mutate-hypershift-openshift-io-v1beta1-hostedcluster
+      port: 443
+  failurePolicy: Fail
+  matchPolicy: Equivalent
+  name: hostedclusters.hypershift.openshift.io
+  namespaceSelector: {}
+  objectSelector: {}
+  reinvocationPolicy: Never
+  rules:
+  - apiGroups:
+    - hypershift.openshift.io
+    apiVersions:
+    - v1beta1
+    operations:
+    - CREATE
+    resources:
+    - hostedclusters
+    scope: Namespaced
+  sideEffects: None
+  timeoutSeconds: 15
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    caBundle: LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSURVVENDQWptZ0F3SUJBZ0lJUWpuMHFFYTRLU1V3RFFZSktvWklodmNOQVFFTEJRQXdOakUwTURJR0ExVUUKQXd3cmIzQmxibk5vYVdaMExYTmxjblpwWTJVdGMyVnlkbWx1WnkxemFXZHVaWEpBTVRjM05UVTFPRFF5TnpBZQpGdzB5TmpBME1EY3hNRFF3TWpaYUZ3MHlPREEyTURVeE1EUXdNamRhTURZeE5EQXlCZ05WQkFNTUsyOXdaVzV6CmFHbG1kQzF6WlhKMmFXTmxMWE5sY25acGJtY3RjMmxuYm1WeVFERTNOelUxTlRnME1qY3dnZ0VpTUEwR0NTcUcKU0liM0RRRUJBUVVBQTRJQkR3QXdnZ0VLQW9JQkFRRFYra2NTTjU3b3crSmpKTE42aEZkK2lsRXlQR1JTRjdKNApWeHp0b0oxOVgzWVJrMEpRTGJnZE1iNHpHSk9aVWY4WFhTbVhlZ2ZJYmU4TEw1RmdOQVJHRkJmV0dPRVdmcXlWCldLbXgwckYySzJqUWs3RlhiaG45YWNwQXZRSTRnRjREblZMUFVzWk4vRzZUcmZVdGlLc0xlUkhEQTR3YjhRQUEKQkI1dVlFVUhMNDFDWHpZVzIvVlBYUzkyMWc3SUtMT25xZXNvZHN2aWdaQ2ZTdE8wUm83b0FCVXl3UWJOQ1NoQwpVeWxIS1VjQXdLZC9kY3FCNHhIbEtHaVpiUHptNEtlN1U2TENzUlcyWEF2SWN5aWlJS0RIUEhsenFETGp0VG5JCnNxU2lodk9pVmxJMmVicFA4S0FxVnhTSWErM1FnTFo4R2htc3pkeGRUcnovNXNReVBaSTlBZ01CQUFHall6QmgKTUE0R0ExVWREd0VCL3dRRUF3SUNwREFQQmdOVkhSTUJBZjhFQlRBREFRSC9NQjBHQTFVZERnUVdCQlREQnV3NgpWREJhQTBBdWswcUJkYlYwWHl5VWNqQWZCZ05WSFNNRUdEQVdnQlREQnV3NlZEQmFBMEF1azBxQmRiVjBYeXlVCmNqQU5CZ2txaGtpRzl3MEJBUXNGQUFPQ0FRRUF5YmE5amoxQ1E5eUVHNURzOTUra2J5L3lHMVRkdlBxY0t4M3gKdTdEQ0s5bTZzVkRWdG8rMmptc3hGMG9rVnA4NEJLaTdsa08xRDFUQ1dWVHQyVTB2dVY5QjcxZWFzOTB1QWZITQpmWXRVZHlkWU80U2VDQllDTVQ2Z1p4TFMvdHNUbjB6Q1Z0cnJaM0owU2xzS3pDNGhhU0JKU2NldU0rYW5YOGdNCktXdGQxTTlXOC80WVpwM2lSZGRnNHhWYlZPTnZKc1kzNlcyOEV4KzNlV2haNWJlZllLOUtJbURkMllPanpGKzUKdC9pVmFlOFVMbkdMWDk2VGJjSEl6aXErVUhmMFNEaWx2Qm1aVEZsTll1Z0FsQjZ5NEpsTmdDOFhSVzk3WXF5cwoyV0JzWU5RUXUzNGc2T2EyU0NsQ3B4RUR5UEFGMFdDaCtONTBVVlovZzNYVSt5VXdDdz09Ci0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
+    service:
+      name: operator
+      namespace: hypershift
+      path: /mutate-hypershift-openshift-io-v1beta1-nodepool
+      port: 443
+  failurePolicy: Fail
+  matchPolicy: Equivalent
+  name: nodepools.hypershift.openshift.io
+  namespaceSelector: {}
+  objectSelector: {}
+  reinvocationPolicy: Never
+  rules:
+  - apiGroups:
+    - hypershift.openshift.io
+    apiVersions:
+    - v1beta1
+    operations:
+    - CREATE
+    resources:
+    - nodepools
+    scope: Namespaced
+  sideEffects: None
+  timeoutSeconds: 15

@@ -40,6 +40,13 @@ OADP for hosted-cluster backup runs on the **management** cluster where MCE or H
 | `gitops/applications/acm/` | Argo CD `Application` resources aimed at the primary (ACM) cluster. |
 | `gitops/applications/dubai/` | Same pattern for the **backup** cluster (example name Dubai OCP). The one-shot Velero restore Argo `Application` is under `gitops/applications/dubai/examples/` so a flat `oc apply -f gitops/applications/dubai/` does not recreate it by accident. |
 | `manifests/restore/` | Example Velero restore manifest; edit before restore drills. |
+| `manifests/metallb-acm/` | MetalLB operator + L2 pool `192.168.122.11-20` on **ACM** (hosted API LoadBalancers). |
+| `manifests/metallb/` | Same for **Dubai** recovery cluster (`192.168.122.31-40`). |
+| `manifests/hcp1-etcd-nfs-perm-fix/` | Post-restore Job to fix NFS ownership on etcd PVCs (`permission denied`). |
+| `examples/hostedcluster-agent-dr-ready.yaml` | HostedCluster **with API hostname** per [DR prerequisites](https://hypershift.pages.dev/how-to/disaster-recovery/prerequisites/). |
+| `docs/hypershift-prerequisites-checklist.md` | Full checklist before MCE/HyperShift + OADP on fresh ACM. |
+| `docs/nfs-etcd-storage.md` | NFS + etcd permissions (before install vs after restore). |
+| `infra/lab-haproxy/` | Reference HAProxy; update `api-hcp1-be` when MetalLB VIP changes. |
 
 ---
 
@@ -61,7 +68,9 @@ If management and storage share a flat network, keep object-store addresses **ou
 - Two OpenShift clusters with cluster-admin access: a **primary** management cluster (this lab uses ACM) and a **backup** management cluster (this lab uses Dubai OCP).
 - S3-compatible storage reachable from **both** clusters.
 - `oc` configured per cluster.
-- For cross-management restore, hosted clusters should use **stable hostnames** in `servicePublishingStrategy` as required by your HyperShift version.
+- For cross-management restore, hosted clusters must use **stable hostnames** in `servicePublishingStrategy` — see [docs/hypershift-prerequisites-checklist.md](docs/hypershift-prerequisites-checklist.md) and `examples/hostedcluster-agent-dr-ready.yaml` (not `LoadBalancer` type alone).
+- **MetalLB** (or equivalent) on each management cluster **before** creating a `HostedCluster` with `APIServer` type `LoadBalancer`; keep pools disjoint from MinIO and management VIPs.
+- If etcd uses **NFS**, read [docs/nfs-etcd-storage.md](docs/nfs-etcd-storage.md) before install; use `manifests/hcp1-etcd-nfs-perm-fix/` only after restore if needed.
 
 ---
 
@@ -76,7 +85,8 @@ oc apply -f gitops/rbac/
 
 # Set spec.source.repoURL (and branch) on every Application to your clone, then:
 oc apply -f gitops/applications/acm/
-# ACM order: 01 rbac → 02 operator → 03 dpa (wait for CSV) → 04 hcp backup schedule
+# ACM order: 00 metallb operator → 00a metallb config (wait CSV) → 01 rbac → 02 oadp operator → 03 dpa → 04 hcp backup
+# Then create HostedCluster using examples/hostedcluster-agent-dr-ready.yaml (API hostname + DNS)
 oc apply -f gitops/applications/dubai/   # or your fork’s path for the backup cluster
 ```
 
