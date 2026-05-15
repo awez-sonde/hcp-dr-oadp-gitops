@@ -1,0 +1,27 @@
+# Install MetalLB operator on ACM before creating HostedClusters that use LoadBalancer APIServer.
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: hcp-dr-metallb-operator
+  namespace: openshift-gitops
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/awez-sonde/hcp-dr-oadp-gitops.git
+    targetRevision: main
+    path: manifests/metallb-acm/operator
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: metallb-system
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    retry:
+      limit: 15
+      backoff:
+        duration: 15s
+        factor: 2
+        maxDuration: 5m
+    syncOptions:
+      - CreateNamespace=true

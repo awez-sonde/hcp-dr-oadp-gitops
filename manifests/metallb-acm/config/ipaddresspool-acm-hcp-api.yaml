@@ -1,0 +1,14 @@
+# L2 pool for hosted cluster API LoadBalancer services on ACM (HyperShift management).
+# Keep disjoint from MinIO (e.g. 192.168.122.8) and Dubai pool (192.168.122.31-40).
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: acm-hcp-api-pool
+  namespace: metallb-system
+  annotations:
+    argocd.argoproj.io/sync-wave: "11"
+spec:
+  addresses:
+    - 192.168.122.11-192.168.122.20
+  autoAssign: true
+  avoidBuggyIPs: false
