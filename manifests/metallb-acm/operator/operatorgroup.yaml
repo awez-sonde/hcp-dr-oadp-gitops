@@ -5,7 +5,7 @@ metadata:
   namespace: metallb-system
   annotations:
     argocd.argoproj.io/sync-wave: "1"
+# Omit spec.targetNamespaces: MetalLB 4.11+ CSV is AllNamespaces-only; targetNamespaces
+# makes OLM use OwnNamespace ("OwnNamespace InstallModeType not supported").
 spec:
-  targetNamespaces:
-    - metallb-system
   upgradeStrategy: Default
