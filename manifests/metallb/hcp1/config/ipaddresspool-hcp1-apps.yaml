@@ -1,0 +1,12 @@
+# L2 pool for LoadBalancer services on hosted cluster hcp1 (ingress router, apps).
+# Keep disjoint from ACM API pool (192.168.122.11-20) and MinIO (e.g. .8).
+apiVersion: metallb.io/v1beta1
+kind: IPAddressPool
+metadata:
+  name: hcp1-apps-pool
+  namespace: metallb-system
+spec:
+  addresses:
+    - 192.168.122.21-192.168.122.30
+  autoAssign: true
+  avoidBuggyIPs: false

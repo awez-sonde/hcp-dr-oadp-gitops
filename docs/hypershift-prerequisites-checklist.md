@@ -46,7 +46,7 @@ spec:
 
 1. Create **libvirt** `<dns><host>` or `/etc/hosts`: `api.hcp1.awezlab.local` → **current** MetalLB VIP for that cluster’s `kube-apiserver` Service.
 2. Update **HAProxy** `api-hcp1-be` backend to that same IP:6443 (`infra/lab-haproxy/haproxy.cfg`).
-3. On **DR cutover**, change DNS (and HAProxy) to the **new** management cluster VIP; hostname in `HostedCluster` spec stays the same.
+3. On **DR cutover**, run **`scripts/virsh-net-cutover-hcp1-dns.sh dubai`** on the hypervisor (moves API `.11`→`.31`, HCP Routes `.253`→`.252`); update HAProxy; hostname in `HostedCluster` spec stays the same.
 
 ## 3. Bare metal / Agent provider
 

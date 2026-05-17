@@ -1,0 +1,9 @@
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: metallb-operator
+  namespace: metallb-system
+# Omit spec.targetNamespaces: MetalLB 4.11+ CSV is AllNamespaces-only; targetNamespaces
+# makes OLM use OwnNamespace ("OwnNamespace InstallModeType not supported").
+spec:
+  upgradeStrategy: Default
