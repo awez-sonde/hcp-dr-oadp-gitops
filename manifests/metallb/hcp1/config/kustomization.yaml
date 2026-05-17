@@ -4,3 +4,4 @@ resources:
   - metallb-instance.yaml
   - ipaddresspool-hcp1-apps.yaml
   - l2advertisement-hcp1-apps.yaml
+  - ingress-loadbalancer-service.yaml
